@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 
 st.title("ML Model Evaluation Panel")
@@ -12,7 +14,42 @@ if uploaded_file:
     st.write("Dataset Preview:")
     st.dataframe(df.head())
 
+    # -----------------------------
+    # 🔍 EXPLORATORY DATA ANALYSIS
+    # -----------------------------
+    st.subheader("Exploratory Data Analysis")
+
+    st.write("Dataset Shape:", df.shape)
+
+    st.write("Data Types:")
+    st.write(df.dtypes)
+
+    st.write("Missing Values:")
+    st.write(df.isnull().sum())
+
+    st.write("Statistical Summary:")
+    st.write(df.describe())
+
+    # Correlation Matrix
+    numeric_df = df.select_dtypes(include=["int64", "float64"])
+
+    if not numeric_df.empty:
+        st.write("Correlation Matrix:")
+        fig, ax = plt.subplots()
+        sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", ax=ax)
+        st.pyplot(fig)
+
+    # Distribution Plot
+    st.subheader("Feature Distribution")
+    column_to_plot = st.selectbox("Select column to visualize", df.columns)
+
+    fig2, ax2 = plt.subplots()
+    sns.histplot(df[column_to_plot], kde=True, ax=ax2)
+    st.pyplot(fig2)
+
+    # -----------------------------
     # ✅ Problem Type Selection
+    # -----------------------------
     problem_type = st.radio(
         "Select Problem Type",
         ["Classification", "Regression"]
@@ -25,7 +62,6 @@ if uploaded_file:
 
         st.subheader("Classification Settings")
 
-        # Show only categorical columns or low-unique numeric columns
         possible_targets = [
             col for col in df.columns
             if df[col].dtype == "object" or df[col].nunique() < 15
@@ -72,7 +108,6 @@ if uploaded_file:
 
         st.subheader("Regression Settings")
 
-        # Show only numeric columns for regression target
         numeric_cols = df.select_dtypes(include=["int64", "float64"]).columns
 
         target = st.selectbox("Select Target Variable", numeric_cols)
